@@ -31,6 +31,7 @@ public class Player : MonoBehaviour
     public State state = State.Float;
 
     public Vector2 velocity = Vector2.zero;
+    private bool jumping;
 
     public Color PlayerColor
     {
@@ -52,6 +53,11 @@ public class Player : MonoBehaviour
 
     private Rigidbody2D Rigidbody => GetComponent<Rigidbody2D>();
 
+    private void Start()
+    {
+        state = State.Float;
+    }
+
     private void FixedUpdate()
     {
         InternalUpdate();
@@ -65,7 +71,7 @@ public class Player : MonoBehaviour
             {
                 var closestPoint = ClosetScenePoint();
 
-                if (closestPoint != null)
+                if (closestPoint != null && !jumping)
                 {
                     var direction = closestPoint.Value - Position;
                     Velocity += direction.normalized * (attachAcc * Time.fixedDeltaTime);
@@ -97,12 +103,12 @@ public class Player : MonoBehaviour
                     var normal = (Position - closetPoint.Value).normalized;
                     Velocity = normal * jumpSpeed;
 
-                    bool? jumpEnd = false;
 
                     IEnumerator JumpEndCoroutine()
                     {
+                        jumping = true;
                         yield return new WaitForSeconds(jumpTime);
-                        jumpEnd = true;
+                        jumping = false;
                     }
 
                     StartCoroutine(JumpEndCoroutine());
@@ -112,7 +118,7 @@ public class Player : MonoBehaviour
                         yield return null;
                         Velocity = Velocity.normalized * jumpSpeed;
                         if (state != State.Float) yield break;
-                        if (jumpEnd.Value) yield break;
+                        if (!jumping) yield break;
                     }
 
                     StartCoroutine(KeepJumpSpeedCoroutine());
@@ -142,10 +148,18 @@ public class Player : MonoBehaviour
                 {
                     var closetPoint = ClosetScenePoint();
                     if (closetPoint == null) return;
-                    var horizontalInput = Input.GetAxisRaw("Horizontal");
-                    var normal = (Position - closetPoint.Value).normalized;
-                    var directionNormal = new Vector2(normal.y, -normal.x);
-                    Velocity += directionNormal * (horizontalInput * (rollAcc * Time.fixedDeltaTime));
+                    var closetHit = ClosetSceneHit();
+                    if (!IsBubbleHit(closetHit.Value))
+                    {
+                        var horizontalInput = Input.GetAxisRaw("Horizontal");
+                        var normal = (Position - closetPoint.Value).normalized;
+                        var directionNormal = new Vector2(normal.y, -normal.x);
+                        Velocity += directionNormal * (horizontalInput * (rollAcc * Time.fixedDeltaTime));
+                    }
+                    else
+                    {
+                        Velocity = Vector2.zero;
+                    }
                 }
                 DecVelocity(rollDec);
 
@@ -273,7 +287,6 @@ public class Player : MonoBehaviour
     {
         var expectDecVelocity = dec * Time.fixedDeltaTime;
         Velocity = Velocity.normalized * math.max(Velocity.magnitude - expectDecVelocity, 0f);
-        Velocity = Vector2.ClampMagnitude(Velocity, rollMaxSpeed);
     }
 
     private void MoveByVelocity()

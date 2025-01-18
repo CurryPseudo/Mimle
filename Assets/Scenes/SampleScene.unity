@@ -864,6 +864,22 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 8684823084761972006, guid: 13c4653c0a18a4a978f7f3b4cc49233b, type: 3}
+      propertyPath: floatDec
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8684823084761972006, guid: 13c4653c0a18a4a978f7f3b4cc49233b, type: 3}
+      propertyPath: attachAcc
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 8684823084761972006, guid: 13c4653c0a18a4a978f7f3b4cc49233b, type: 3}
+      propertyPath: jumpSpeed
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8684823084761972006, guid: 13c4653c0a18a4a978f7f3b4cc49233b, type: 3}
+      propertyPath: floatMaxSpeed
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8684823084761972006, guid: 13c4653c0a18a4a978f7f3b4cc49233b, type: 3}
       propertyPath: drillOutCheckDistance
       value: 0.5
       objectReference: {fileID: 0}

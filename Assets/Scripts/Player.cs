@@ -12,6 +12,7 @@ public class Player : MonoBehaviour
     }
 
     public float floatMaxSpeed = 3.0f;
+    public float floatDec = 1f;
     public float attachAcc = 1f;
     public float rollMaxSpeed = 2.0f;
     public float rollAcc = 2f;
@@ -50,6 +51,7 @@ public class Player : MonoBehaviour
                     Velocity += direction.normalized * (attachAcc * Time.fixedDeltaTime);
                 }
 
+                DecVelocity(floatDec);
                 Velocity = Vector2.ClampMagnitude(Velocity, floatMaxSpeed);
 
                 var closetHit = ClosetTranslationHit();
@@ -76,9 +78,7 @@ public class Player : MonoBehaviour
                     var directionNormal = new Vector2(direction.y, -direction.x);
                     Velocity += directionNormal * (-horizontalInput * (rollAcc * Time.fixedDeltaTime));
                 }
-                var expectDecVelocity = rollDec * Time.fixedDeltaTime;
-                Velocity = Velocity.normalized * math.max(Velocity.magnitude - expectDecVelocity, 0f);
-                Velocity = Vector2.ClampMagnitude(Velocity, rollMaxSpeed);
+                DecVelocity(rollDec);
 
                 var expectDistance = Velocity.magnitude * Time.fixedDeltaTime;
                 for (var i = 0; i < 100; ++i)
@@ -119,6 +119,13 @@ public class Player : MonoBehaviour
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    private void DecVelocity(float dec)
+    {
+        var expectDecVelocity = dec * Time.fixedDeltaTime;
+        Velocity = Velocity.normalized * math.max(Velocity.magnitude - expectDecVelocity, 0f);
+        Velocity = Vector2.ClampMagnitude(Velocity, rollMaxSpeed);
     }
 
     private void MoveByVelocity()

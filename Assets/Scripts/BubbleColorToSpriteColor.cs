@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(BubbleColor), typeof(SpriteRenderer))]
+[RequireComponent(typeof(SpriteRenderer))]
 [ExecuteInEditMode]
 public class BubbleColorToSpriteColor : MonoBehaviour
 {
@@ -12,6 +12,10 @@ public class BubbleColorToSpriteColor : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        GetComponent<SpriteRenderer>().color = GetComponent<BubbleColor>().color;
+        var bubbleColor = GetComponent<BubbleColor>();
+        if (bubbleColor == null) bubbleColor = GetComponentInParent<BubbleColor>();
+
+        if (bubbleColor == null) return;
+        GetComponent<SpriteRenderer>().color = bubbleColor.color;
     }
 }

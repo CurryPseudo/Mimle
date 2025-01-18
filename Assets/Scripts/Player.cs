@@ -133,7 +133,8 @@ public class Player : MonoBehaviour
                     var closetHit = ClosetSceneHit();
                     if (closetHit == null) return;
                     var bubbleColor = closetHit.Value.collider.gameObject.GetComponent<BubbleColor>();
-                    if (bubbleColor != null)
+                    var isTargetBubble = IsTargetBubbleHit(closetHit.Value);
+                    if (bubbleColor != null && !isTargetBubble)
                     {
                         PlayerColor = bubbleColor.color;
                         var normal = (Position - closetHit.Value.point).normalized;
@@ -353,6 +354,13 @@ public class Player : MonoBehaviour
     private bool IsBubbleHit(RaycastHit2D hit)
     {
         return hit.collider.gameObject.GetComponent<BubbleColor>() != null;
+    }
+
+    private bool IsTargetBubbleHit(RaycastHit2D hit)
+    {
+        var targetBubble = hit.collider.gameObject.GetComponent<TargetBubble>();
+        if (targetBubble == null) return false;
+        return targetBubble.enabled;
     }
 
     private BubbleColor GetBubbleColor(RaycastHit2D hit)

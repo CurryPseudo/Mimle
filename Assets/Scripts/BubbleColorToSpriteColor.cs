@@ -16,6 +16,7 @@ public class BubbleColorToSpriteColor : MonoBehaviour
         if (bubbleColor == null) bubbleColor = GetComponentInParent<BubbleColor>();
 
         if (bubbleColor == null) return;
+        if (!bubbleColor.enabled) return;
         GetComponent<SpriteRenderer>().color = bubbleColor.color;
     }
 }

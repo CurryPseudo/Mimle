@@ -26,6 +26,12 @@ public class Player : MonoBehaviour
 
     public Vector2 velocity = Vector2.zero;
 
+    public Color PlayerColor
+    {
+        get => GetComponent<BubbleColor>().color;
+        set => GetComponent<BubbleColor>().color = value;
+    }
+
     private Vector2 Position
     {
         get => Rigidbody.position;
@@ -108,6 +114,14 @@ public class Player : MonoBehaviour
                     state = State.Float;
                     InternalUpdate();
                     return;
+                }
+
+                if (Input.GetButton("Absorb"))
+                {
+                    var closetHit = ClosetSceneHit();
+                    if (closetHit == null) return;
+                    var bubbleColor = closetHit.Value.collider.gameObject.GetComponent<BubbleColor>();
+                    if (bubbleColor != null) PlayerColor = bubbleColor.color;
                 }
 
                 {

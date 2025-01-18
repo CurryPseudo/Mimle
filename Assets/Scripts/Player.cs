@@ -72,39 +72,45 @@ public class Player : MonoBehaviour
                     var closetPoint = ClosetScenePoint();
                     if (closetPoint == null) return;
                     var horizontalInput = Input.GetAxisRaw("Horizontal");
-                    var verticalInput = Input.GetAxisRaw("Vertical");
-                    var input = new Vector2(horizontalInput, verticalInput);
-                    var expectAccVelocity = input.normalized * (rollAcc * Time.fixedDeltaTime);
-                    {
-                        var direction = (closetPoint.Value - Position).normalized;
-                        var directionNormal = new Vector2(direction.y, -direction.x);
-                        expectAccVelocity = math.dot(expectAccVelocity, directionNormal) * directionNormal;
-                    }
-                    Velocity += expectAccVelocity;
+                    var direction = (closetPoint.Value - Position).normalized;
+                    var directionNormal = new Vector2(direction.y, -direction.x);
+                    Velocity += directionNormal * (-horizontalInput * (rollAcc * Time.fixedDeltaTime));
                 }
                 var expectDecVelocity = rollDec * Time.fixedDeltaTime;
-                expectDecVelocity = math.min(Velocity.magnitude, expectDecVelocity);
-                Velocity -= Velocity.normalized * expectDecVelocity;
+                Velocity = Velocity.normalized * math.max(Velocity.magnitude - expectDecVelocity, 0f);
                 Velocity = Vector2.ClampMagnitude(Velocity, rollMaxSpeed);
 
-                var closetHit = ClosetTranslationHit();
-                if (closetHit == null)
+                var expectDistance = Velocity.magnitude * Time.fixedDeltaTime;
+                for (var i = 0; i < 100; ++i)
                 {
-                    MoveByVelocity();
-                    var hit = ClosetSceneHit();
-                    var closetPoint = ClosetScenePoint();
-                    if (closetPoint == null) return;
-                    var direction = closetPoint.Value - Position;
-                    Position += direction.normalized * math.max(hit.Value.distance - hitEpsilon, 0f);
-                    var directionNormal = new Vector2(direction.y, -direction.x).normalized;
-                    Velocity = directionNormal *
-                               (Velocity.magnitude * math.sign(math.dot(directionNormal, Velocity)));
-                }
-                else
-                {
+                    var translation = Velocity.normalized * expectDistance;
+                    var closetHit = ClosetTranslationHit(translation);
+                    if (closetHit == null)
+                    {
+                        MoveByVelocity();
+                        var hit = ClosetSceneHit();
+                        var closetPoint = ClosetScenePoint();
+                        if (closetPoint == null) return;
+                        var direction = closetPoint.Value - Position;
+                        Position += direction.normalized * math.max(hit.Value.distance - hitEpsilon, 0f);
+                        var directionNormal = new Vector2(direction.y, -direction.x).normalized;
+                        Velocity = directionNormal *
+                                   (Velocity.magnitude * math.sign(math.dot(directionNormal, Velocity)));
+                        break;
+                    }
+
                     var maxDistance = math.max(closetHit.Value.distance - hitEpsilon, 0f);
-                    Position += maxDistance * Velocity.normalized;
-                    Velocity = Vector2.zero;
+                    {
+                        var closetPoint = ClosetScenePoint();
+                        var preNormal = (Position - closetPoint.Value).normalized;
+                        Position += maxDistance * Velocity.normalized;
+                        var normal = Position - closetHit.Value.point;
+                        var unsignedDirection = new Vector2(normal.y, -normal.x).normalized;
+                        var sign = math.sign(math.dot(preNormal, unsignedDirection));
+                        Velocity = Velocity.magnitude * sign * unsignedDirection;
+                    }
+                    expectDistance -= maxDistance;
+                    if (expectDistance < 0.0) break;
                 }
 
                 break;
@@ -130,12 +136,17 @@ public class Player : MonoBehaviour
         return closetHit;
     }
 
-    private RaycastHit2D? ClosetTranslationHit()
+    private RaycastHit2D? ClosetTranslationHit(Vector2 translation)
     {
         var hits = new List<RaycastHit2D>();
-        var translation = Velocity * Time.fixedDeltaTime;
         Rigidbody.Cast(translation.normalized, hits, translation.magnitude + hitEpsilon);
         return ClosetHit(hits);
+    }
+
+    private RaycastHit2D? ClosetTranslationHit()
+    {
+        var translation = Velocity * Time.fixedDeltaTime;
+        return ClosetTranslationHit(translation);
     }
 
     private Vector2? ClosetScenePoint()

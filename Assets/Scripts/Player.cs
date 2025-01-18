@@ -246,6 +246,7 @@ public class Player : MonoBehaviour
             {
                 var floodHit = ClosetSceneHit();
                 var floodingBubbleColor = GetBubbleColor(floodHit.Value);
+                if (floodingBubbleColor == null) floodingBubbleColor = GetOverlappingBubbleColor();
                 if (floodingBubbleColor == null)
                 {
                     state = State.Roll;
@@ -353,25 +354,28 @@ public class Player : MonoBehaviour
 
     private bool IsBubbleColorHit(RaycastHit2D hit, BubbleColor floodingBubbleColor)
     {
-        if (IsTargetBubbleHit(hit)) return false;
         var bubbleColor = GetBubbleColor(hit);
-        if (bubbleColor == null) return true;
+        if (bubbleColor == null) return false;
+        if (IsTargetBubbleHit(hit)) return false;
         return SameColor(bubbleColor.color, floodingBubbleColor.color);
+    }
+
+    private BubbleColor GetOverlappingBubbleColor()
+    {
+        var colliders = new List<Collider2D>();
+        Rigidbody.Overlap(colliders);
+        foreach (var collider in colliders)
+        {
+            var bubbleColor = collider.GetComponent<BubbleColor>();
+            if (bubbleColor != null) return bubbleColor;
+        }
+
+        return null;
     }
 
     private bool IsOverlappingBubble()
     {
-        var colliders = new List<Collider2D>();
-        Rigidbody.Overlap(colliders);
-        var targetPositionOverlapBubble = false;
-        foreach (var collider in colliders)
-            if (collider.GetComponent<BubbleColor>() != null)
-            {
-                targetPositionOverlapBubble = true;
-                break;
-            }
-
-        return targetPositionOverlapBubble;
+        return GetOverlappingBubbleColor() != null;
     }
 
     private void DecVelocity(float dec)

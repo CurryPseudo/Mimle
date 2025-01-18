@@ -260,7 +260,7 @@ MonoBehaviour:
   jumpTime: 0.5
   floatDec: 10
   attachAcc: 20
-  rollMaxSpeed: 3
+  rollMaxSpeed: 5
   rollAcc: 10
   rollDec: 5
   drillSpeed: 5

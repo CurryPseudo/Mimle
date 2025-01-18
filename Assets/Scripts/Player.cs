@@ -205,6 +205,7 @@ public class Player : MonoBehaviour
                     }
                 }
                 DecVelocity(rollDec);
+                Velocity = Vector2.ClampMagnitude(Velocity, rollMaxSpeed);
 
                 var expectDistance = Velocity.magnitude * Time.fixedDeltaTime;
                 for (var i = 0; i < 100; ++i)

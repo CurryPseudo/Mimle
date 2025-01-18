@@ -170,22 +170,24 @@ public class Player : MonoBehaviour
                 if (absorbButtonDown)
                 {
                     absorbButtonDown = false;
-                    var closetHit = ClosetSceneHit();
-                    if (closetHit == null) return;
-                    var bubbleColor = closetHit.Value.collider.gameObject.GetComponent<BubbleColor>();
-                    var isTargetBubble = IsTargetBubbleHit(closetHit.Value);
-                    if (bubbleColor != null && !isTargetBubble)
-                    {
-                        PlayerColor = bubbleColor.color;
-                        var normal = (Position - closetHit.Value.point).normalized;
-                        Velocity = -normal * drillSpeed;
-                        state = State.Flood;
-                        InternalUpdate();
-                        return;
-                    }
+                    if (TryAbsorb()) return;
                 }
 
 
+                {
+                    var closetPoint = ClosetScenePoint();
+                    if (closetPoint == null) return;
+                    var closetHit = ClosetSceneHit();
+                    if (IsTargetBubbleHit(closetHit.Value))
+                    {
+                        var targetBubbleColor = GetBubbleColor(closetHit.Value);
+                        if (targetBubbleColor != null && targetBubbleColor.color == PlayerColor)
+                        {
+                            GetTargetBubble(closetHit.Value).enabled = false;
+                            if (TryAbsorb()) return;
+                        }
+                    }
+                }
                 {
                     var closetPoint = ClosetScenePoint();
                     if (closetPoint == null) return;
@@ -315,6 +317,25 @@ public class Player : MonoBehaviour
         }
     }
 
+    private bool TryAbsorb()
+    {
+        var closetHit = ClosetSceneHit();
+        if (closetHit == null) return false;
+        var bubbleColor = closetHit.Value.collider.gameObject.GetComponent<BubbleColor>();
+        var isTargetBubble = IsTargetBubbleHit(closetHit.Value);
+        if (bubbleColor != null && !isTargetBubble)
+        {
+            PlayerColor = bubbleColor.color;
+            var normal = (Position - closetHit.Value.point).normalized;
+            Velocity = -normal * drillSpeed;
+            state = State.Flood;
+            InternalUpdate();
+            return true;
+        }
+
+        return false;
+    }
+
     private bool IsBubbleColorHit(RaycastHit2D hit, BubbleColor floodingBubbleColor)
     {
         if (IsTargetBubbleHit(hit)) return false;
@@ -390,6 +411,12 @@ public class Player : MonoBehaviour
     private bool IsBubbleHit(RaycastHit2D hit)
     {
         return hit.collider.gameObject.GetComponent<BubbleColor>() != null;
+    }
+
+    private TargetBubble GetTargetBubble(RaycastHit2D hit)
+    {
+        var targetBubble = hit.collider.gameObject.GetComponent<TargetBubble>();
+        return targetBubble;
     }
 
     private bool IsTargetBubbleHit(RaycastHit2D hit)

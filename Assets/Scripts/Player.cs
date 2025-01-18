@@ -133,7 +133,8 @@ public class Player : MonoBehaviour
                     var closetHit = ClosetSceneHit();
                     if (closetHit == null) return;
                     var bubbleColor = closetHit.Value.collider.gameObject.GetComponent<BubbleColor>();
-                    if (bubbleColor != null)
+                    var isTargetBubble = IsTargetBubbleHit(closetHit.Value);
+                    if (bubbleColor != null && !isTargetBubble)
                     {
                         PlayerColor = bubbleColor.color;
                         var normal = (Position - closetHit.Value.point).normalized;
@@ -206,12 +207,7 @@ public class Player : MonoBehaviour
                 {
                     // Check drilling out
                     var translation = Velocity.normalized * drillOutCheckDistance;
-                    var blockHit = ClosetTranslationHit(translation, hit =>
-                    {
-                        var bubbleColor = GetBubbleColor(hit);
-                        if (bubbleColor == null) return true;
-                        return bubbleColor.color != floodingBubbleColor.color;
-                    });
+                    var blockHit = ClosetTranslationHit(translation, hit => !IsBubbleColorHit(hit, floodingBubbleColor));
                     if (blockHit != null)
                         translation = translation.normalized * math.max(blockHit.Value.distance - hitEpsilon, 0);
                     {
@@ -233,12 +229,8 @@ public class Player : MonoBehaviour
                 if (drillingOut)
                 {
                     var translation = Velocity * Time.fixedDeltaTime;
-                    var blockHit = ClosetTranslationHit(translation, hit =>
-                    {
-                        var bubbleColor = GetBubbleColor(hit);
-                        if (bubbleColor == null) return true;
-                        return bubbleColor.color != floodingBubbleColor.color;
-                    });
+                    var blockHit =
+                        ClosetTranslationHit(translation, hit => !IsBubbleColorHit(hit, floodingBubbleColor));
                     if (blockHit != null)
                         translation = math.max(blockHit.Value.distance - hitEpsilon, 0f) * Velocity.normalized;
                     Vector2? drillStickPosition = null;
@@ -246,11 +238,7 @@ public class Player : MonoBehaviour
                     {
                         Position += translation;
                         var bubbleHit = ClosetTranslationHit(-translation, hit =>
-                        {
-                            var bubbleColor = GetBubbleColor(hit);
-                            if (bubbleColor == null) return false;
-                            return bubbleColor.color == floodingBubbleColor.color;
-                        });
+                            IsBubbleColorHit(hit, floodingBubbleColor));
                         if (!IsOverlappingBubble() && bubbleHit != null)
                             drillStickPosition = Position + -translation.normalized *
                                 math.max(bubbleHit.Value.distance - hitEpsilon, 0f);
@@ -266,7 +254,7 @@ public class Player : MonoBehaviour
 
                 {
                     var closetHit = ClosetTranslationHit(hit =>
-                        IsNotBubbleHit(hit) || GetBubbleColor(hit).color != floodingBubbleColor.color);
+                        !IsBubbleColorHit(hit, floodingBubbleColor));
                     if (closetHit == null)
                     {
                         MoveByVelocity();
@@ -284,6 +272,14 @@ public class Player : MonoBehaviour
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    private bool IsBubbleColorHit(RaycastHit2D hit, BubbleColor floodingBubbleColor)
+    {
+        if (IsTargetBubbleHit(hit)) return false;
+        var bubbleColor = GetBubbleColor(hit);
+        if (bubbleColor == null) return true;
+        return bubbleColor.color == floodingBubbleColor.color;
     }
 
     private bool IsOverlappingBubble()
@@ -353,6 +349,13 @@ public class Player : MonoBehaviour
     private bool IsBubbleHit(RaycastHit2D hit)
     {
         return hit.collider.gameObject.GetComponent<BubbleColor>() != null;
+    }
+
+    private bool IsTargetBubbleHit(RaycastHit2D hit)
+    {
+        var targetBubble = hit.collider.gameObject.GetComponent<TargetBubble>();
+        if (targetBubble == null) return false;
+        return targetBubble.enabled;
     }
 
     private BubbleColor GetBubbleColor(RaycastHit2D hit)

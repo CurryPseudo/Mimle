@@ -31,7 +31,14 @@ public class Player : MonoBehaviour
     public State state = State.Float;
 
     public Vector2 velocity = Vector2.zero;
+    public float inputResistTime = 0.2f;
+    private bool absorbButtonDown;
+
+    private bool jumpButtonDown;
     private bool jumping;
+    private Coroutine resetAbsorbButtonDownCoroutine;
+
+    private Coroutine resetJumpButtonDownCoroutine;
 
     public Color PlayerColor
     {
@@ -56,6 +63,37 @@ public class Player : MonoBehaviour
     private void Start()
     {
         state = State.Float;
+    }
+
+    private void Update()
+    {
+        if (Input.GetButtonDown("Jump"))
+        {
+            jumpButtonDown = true;
+            if (resetJumpButtonDownCoroutine != null) StopCoroutine(resetJumpButtonDownCoroutine);
+
+            IEnumerator ResetJumpButtonDownCoroutine()
+            {
+                yield return new WaitForSeconds(inputResistTime);
+                jumpButtonDown = false;
+            }
+
+            StartCoroutine(ResetJumpButtonDownCoroutine());
+        }
+
+        if (Input.GetButtonDown("Absorb"))
+        {
+            absorbButtonDown = true;
+            if (resetAbsorbButtonDownCoroutine != null) StopCoroutine(resetAbsorbButtonDownCoroutine);
+
+            IEnumerator ResetAbsorbButtonDownCoroutine()
+            {
+                yield return new WaitForSeconds(inputResistTime);
+                absorbButtonDown = false;
+            }
+
+            StartCoroutine(ResetAbsorbButtonDownCoroutine());
+        }
     }
 
     private void FixedUpdate()
@@ -96,8 +134,9 @@ public class Player : MonoBehaviour
             }
             case State.Roll:
             {
-                if (Input.GetButton("Jump"))
+                if (jumpButtonDown)
                 {
+                    jumpButtonDown = false;
                     var closetPoint = ClosetScenePoint();
                     if (closetPoint == null) return;
                     var normal = (Position - closetPoint.Value).normalized;
@@ -128,8 +167,9 @@ public class Player : MonoBehaviour
                     return;
                 }
 
-                if (Input.GetButton("Absorb"))
+                if (absorbButtonDown)
                 {
+                    absorbButtonDown = false;
                     var closetHit = ClosetSceneHit();
                     if (closetHit == null) return;
                     var bubbleColor = closetHit.Value.collider.gameObject.GetComponent<BubbleColor>();
@@ -207,7 +247,8 @@ public class Player : MonoBehaviour
                 {
                     // Check drilling out
                     var translation = Velocity.normalized * drillOutCheckDistance;
-                    var blockHit = ClosetTranslationHit(translation, hit => !IsBubbleColorHit(hit, floodingBubbleColor));
+                    var blockHit =
+                        ClosetTranslationHit(translation, hit => !IsBubbleColorHit(hit, floodingBubbleColor));
                     if (blockHit != null)
                         translation = translation.normalized * math.max(blockHit.Value.distance - hitEpsilon, 0);
                     {

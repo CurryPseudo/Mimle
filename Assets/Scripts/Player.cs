@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
@@ -12,6 +13,8 @@ public class Player : MonoBehaviour
     }
 
     public float floatMaxSpeed = 3.0f;
+    public float jumpSpeed = 3.0f;
+    public float jumpTime = 0.5f;
     public float floatDec = 1f;
     public float attachAcc = 1f;
     public float rollMaxSpeed = 2.0f;
@@ -38,6 +41,11 @@ public class Player : MonoBehaviour
     private Rigidbody2D Rigidbody => GetComponent<Rigidbody2D>();
 
     private void FixedUpdate()
+    {
+        InternalUpdate();
+    }
+
+    private void InternalUpdate()
     {
         switch (state)
         {
@@ -70,13 +78,45 @@ public class Player : MonoBehaviour
             }
             case State.Roll:
             {
+                if (Input.GetButton("Jump"))
+                {
+                    var closetPoint = ClosetScenePoint();
+                    if (closetPoint == null) return;
+                    var normal = (Position - closetPoint.Value).normalized;
+                    Velocity = normal * jumpSpeed;
+
+                    bool? jumpEnd = false;
+
+                    IEnumerator JumpEndCoroutine()
+                    {
+                        yield return new WaitForSeconds(jumpTime);
+                        jumpEnd = true;
+                    }
+
+                    StartCoroutine(JumpEndCoroutine());
+
+                    IEnumerator KeepJumpSpeedCoroutine()
+                    {
+                        yield return null;
+                        Velocity = Velocity.normalized * jumpSpeed;
+                        if (state != State.Float) yield break;
+                        if (jumpEnd.Value) yield break;
+                    }
+
+                    StartCoroutine(KeepJumpSpeedCoroutine());
+
+                    state = State.Float;
+                    InternalUpdate();
+                    return;
+                }
+
                 {
                     var closetPoint = ClosetScenePoint();
                     if (closetPoint == null) return;
                     var horizontalInput = Input.GetAxisRaw("Horizontal");
-                    var direction = (closetPoint.Value - Position).normalized;
-                    var directionNormal = new Vector2(direction.y, -direction.x);
-                    Velocity += directionNormal * (-horizontalInput * (rollAcc * Time.fixedDeltaTime));
+                    var normal = (Position - closetPoint.Value).normalized;
+                    var directionNormal = new Vector2(normal.y, -normal.x);
+                    Velocity += directionNormal * (horizontalInput * (rollAcc * Time.fixedDeltaTime));
                 }
                 DecVelocity(rollDec);
 

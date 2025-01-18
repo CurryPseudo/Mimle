@@ -284,7 +284,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aef1097755aa64277bcad43bad549b1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  floatMaxSpeed: 2.5
+  floatMaxSpeed: 5
+  jumpSpeed: 5
+  jumpTime: 0.5
   floatDec: 1
   attachAcc: 3
   rollMaxSpeed: 3

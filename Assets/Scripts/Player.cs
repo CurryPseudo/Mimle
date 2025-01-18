@@ -200,11 +200,18 @@ public class Player : MonoBehaviour
             }
             case State.Flood:
             {
+                var floodHit = ClosetSceneHit();
+                var floodingBubbleColor = GetBubbleColor(floodHit.Value);
                 var drillingOut = false;
                 {
                     // Check drilling out
                     var translation = Velocity.normalized * drillOutCheckDistance;
-                    var blockHit = ClosetTranslationHit(translation, IsNotBubbleHit);
+                    var blockHit = ClosetTranslationHit(translation, hit =>
+                    {
+                        var bubbleColor = GetBubbleColor(hit);
+                        if (bubbleColor == null) return true;
+                        return bubbleColor.color != floodingBubbleColor.color;
+                    });
                     if (blockHit != null)
                         translation = translation.normalized * math.max(blockHit.Value.distance - hitEpsilon, 0);
                     {
@@ -226,14 +233,24 @@ public class Player : MonoBehaviour
                 if (drillingOut)
                 {
                     var translation = Velocity * Time.fixedDeltaTime;
-                    var blockHit = ClosetTranslationHit(IsNotBubbleHit);
+                    var blockHit = ClosetTranslationHit(translation, hit =>
+                    {
+                        var bubbleColor = GetBubbleColor(hit);
+                        if (bubbleColor == null) return true;
+                        return bubbleColor.color != floodingBubbleColor.color;
+                    });
                     if (blockHit != null)
                         translation = math.max(blockHit.Value.distance - hitEpsilon, 0f) * Velocity.normalized;
                     Vector2? drillStickPosition = null;
                     var prePosition = Position;
                     {
                         Position += translation;
-                        var bubbleHit = ClosetTranslationHit(-translation, IsBubbleHit);
+                        var bubbleHit = ClosetTranslationHit(-translation, hit =>
+                        {
+                            var bubbleColor = GetBubbleColor(hit);
+                            if (bubbleColor == null) return false;
+                            return bubbleColor.color == floodingBubbleColor.color;
+                        });
                         if (!IsOverlappingBubble() && bubbleHit != null)
                             drillStickPosition = Position + -translation.normalized *
                                 math.max(bubbleHit.Value.distance - hitEpsilon, 0f);
@@ -248,7 +265,8 @@ public class Player : MonoBehaviour
                 }
 
                 {
-                    var closetHit = ClosetTranslationHit(IsNotBubbleHit);
+                    var closetHit = ClosetTranslationHit(hit =>
+                        IsNotBubbleHit(hit) || GetBubbleColor(hit).color != floodingBubbleColor.color);
                     if (closetHit == null)
                     {
                         MoveByVelocity();
@@ -335,6 +353,11 @@ public class Player : MonoBehaviour
     private bool IsBubbleHit(RaycastHit2D hit)
     {
         return hit.collider.gameObject.GetComponent<BubbleColor>() != null;
+    }
+
+    private BubbleColor GetBubbleColor(RaycastHit2D hit)
+    {
+        return hit.collider.gameObject.GetComponent<BubbleColor>();
     }
 
     private bool IsNotBubbleHit(RaycastHit2D hit)

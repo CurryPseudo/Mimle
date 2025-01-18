@@ -255,11 +255,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aef1097755aa64277bcad43bad549b1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  floatMaxSpeed: 5
-  jumpSpeed: 5
+  floatMaxSpeed: 10
+  jumpSpeed: 10
   jumpTime: 0.5
-  floatDec: 1
-  attachAcc: 3
+  floatDec: 10
+  attachAcc: 20
   rollMaxSpeed: 3
   rollAcc: 10
   rollDec: 5
@@ -267,10 +267,11 @@ MonoBehaviour:
   floodAcc: 10
   floodDec: 5
   floodMaxSpeed: 3
-  drillOutCheckDistance: 0.3
+  drillOutCheckDistance: 0.5
   hitEpsilon: 0.05
-  state: 0
-  velocity: {x: 0, y: 0}
+  state: 1
+  velocity: {x: -0, y: -0}
+  inputResistTime: 0.2
 --- !u!114 &6554674891359661732
 MonoBehaviour:
   m_ObjectHideFlags: 0

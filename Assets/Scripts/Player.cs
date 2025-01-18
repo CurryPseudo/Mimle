@@ -9,7 +9,8 @@ public class Player : MonoBehaviour
     public enum State
     {
         Float,
-        Roll
+        Roll,
+        Flood
     }
 
     public float floatMaxSpeed = 3.0f;
@@ -20,6 +21,11 @@ public class Player : MonoBehaviour
     public float rollMaxSpeed = 2.0f;
     public float rollAcc = 2f;
     public float rollDec = 1f;
+    public float drillSpeed = 5.0f;
+    public float floodAcc = 10f;
+    public float floodDec = 5.0f;
+    public float floodMaxSpeed = 3.0f;
+    public float drillOutCheckDistance = 0.3f;
     public float hitEpsilon = 0.01f;
 
     public State state = State.Float;
@@ -121,8 +127,17 @@ public class Player : MonoBehaviour
                     var closetHit = ClosetSceneHit();
                     if (closetHit == null) return;
                     var bubbleColor = closetHit.Value.collider.gameObject.GetComponent<BubbleColor>();
-                    if (bubbleColor != null) PlayerColor = bubbleColor.color;
+                    if (bubbleColor != null)
+                    {
+                        PlayerColor = bubbleColor.color;
+                        var normal = (Position - closetHit.Value.point).normalized;
+                        Velocity = -normal * drillSpeed;
+                        state = State.Flood;
+                        InternalUpdate();
+                        return;
+                    }
                 }
+
 
                 {
                     var closetPoint = ClosetScenePoint();
@@ -169,10 +184,89 @@ public class Player : MonoBehaviour
 
                 break;
             }
+            case State.Flood:
+            {
+                var drillingOut = false;
+                {
+                    // Check drilling out
+                    var translation = Velocity.normalized * drillOutCheckDistance;
+                    var blockHit = ClosetTranslationHit(translation, IsNotBubbleHit);
+                    if (blockHit != null)
+                        translation = translation.normalized * math.max(blockHit.Value.distance - hitEpsilon, 0);
+                    {
+                        var prePosition = Position;
+                        Position += translation;
+                        drillingOut = !IsOverlappingBubble();
+                        Position = prePosition;
+                    }
+                }
+                if (drillingOut) Velocity = Velocity.normalized * drillSpeed;
+                if (!drillingOut)
+                {
+                    var input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                    Velocity += input * (floodAcc * Time.fixedDeltaTime);
+                }
+
+                DecVelocity(floodDec);
+                Velocity = Vector2.ClampMagnitude(Velocity, floodMaxSpeed);
+                if (drillingOut)
+                {
+                    var translation = Velocity * Time.fixedDeltaTime;
+                    var blockHit = ClosetTranslationHit(IsNotBubbleHit);
+                    if (blockHit != null)
+                        translation = math.max(blockHit.Value.distance - hitEpsilon, 0f) * Velocity.normalized;
+                    Vector2? drillStickPosition = null;
+                    var prePosition = Position;
+                    {
+                        Position += translation;
+                        var bubbleHit = ClosetTranslationHit(-translation, IsBubbleHit);
+                        if (!IsOverlappingBubble() && bubbleHit != null)
+                            drillStickPosition = Position + -translation.normalized *
+                                math.max(bubbleHit.Value.distance - hitEpsilon, 0f);
+                    }
+                    Position = prePosition;
+                    if (drillStickPosition != null)
+                    {
+                        Position = drillStickPosition.Value;
+                        state = State.Roll;
+                        return;
+                    }
+                }
+
+                {
+                    var closetHit = ClosetTranslationHit(IsNotBubbleHit);
+                    if (closetHit == null)
+                    {
+                        MoveByVelocity();
+                    }
+                    else
+                    {
+                        Position += math.max(closetHit.Value.distance - hitEpsilon, 0f) * Velocity.normalized;
+                        Velocity = Vector2.zero;
+                    }
+                }
+
+                break;
+            }
 
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    private bool IsOverlappingBubble()
+    {
+        var colliders = new List<Collider2D>();
+        Rigidbody.Overlap(colliders);
+        var targetPositionOverlapBubble = false;
+        foreach (var collider in colliders)
+            if (collider.GetComponent<BubbleColor>() != null)
+            {
+                targetPositionOverlapBubble = true;
+                break;
+            }
+
+        return targetPositionOverlapBubble;
     }
 
     private void DecVelocity(float dec)
@@ -204,10 +298,35 @@ public class Player : MonoBehaviour
         return ClosetHit(hits);
     }
 
+    private RaycastHit2D? ClosetTranslationHit(Vector2 translation, Func<RaycastHit2D, bool> filterFunc)
+    {
+        var hits = new List<RaycastHit2D>();
+        Rigidbody.Cast(translation.normalized, hits, translation.magnitude + hitEpsilon);
+        hits.RemoveAll(hit => !filterFunc(hit));
+        return ClosetHit(hits);
+    }
+
+    private RaycastHit2D? ClosetTranslationHit(Func<RaycastHit2D, bool> filterFunc)
+    {
+        var translation = Velocity * Time.fixedDeltaTime;
+        return ClosetTranslationHit(translation, filterFunc);
+    }
+
     private RaycastHit2D? ClosetTranslationHit()
     {
         var translation = Velocity * Time.fixedDeltaTime;
         return ClosetTranslationHit(translation);
+    }
+
+
+    private bool IsBubbleHit(RaycastHit2D hit)
+    {
+        return hit.collider.gameObject.GetComponent<BubbleColor>() != null;
+    }
+
+    private bool IsNotBubbleHit(RaycastHit2D hit)
+    {
+        return hit.collider.gameObject.GetComponent<BubbleColor>() == null;
     }
 
     private Vector2? ClosetScenePoint()

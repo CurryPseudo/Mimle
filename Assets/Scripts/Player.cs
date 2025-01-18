@@ -181,7 +181,7 @@ public class Player : MonoBehaviour
                     if (IsTargetBubbleHit(closetHit.Value))
                     {
                         var targetBubbleColor = GetBubbleColor(closetHit.Value);
-                        if (targetBubbleColor != null && targetBubbleColor.color == PlayerColor)
+                        if (targetBubbleColor != null && SameColor(targetBubbleColor.color, PlayerColor))
                         {
                             GetTargetBubble(closetHit.Value).enabled = false;
                             if (TryAbsorb()) return;
@@ -245,6 +245,13 @@ public class Player : MonoBehaviour
             {
                 var floodHit = ClosetSceneHit();
                 var floodingBubbleColor = GetBubbleColor(floodHit.Value);
+                if (floodingBubbleColor == null)
+                {
+                    state = State.Roll;
+                    InternalUpdate();
+                    return;
+                }
+
                 var drillingOut = false;
                 {
                     // Check drilling out
@@ -336,12 +343,19 @@ public class Player : MonoBehaviour
         return false;
     }
 
+    private bool SameColor(Color a, Color b)
+    {
+        var va = new Vector4(a.r, a.g, a.b, a.a);
+        var vb = new Vector4(b.r, b.g, b.b, b.a);
+        return math.all(math.abs(va - vb) < 0.01f);
+    }
+
     private bool IsBubbleColorHit(RaycastHit2D hit, BubbleColor floodingBubbleColor)
     {
         if (IsTargetBubbleHit(hit)) return false;
         var bubbleColor = GetBubbleColor(hit);
         if (bubbleColor == null) return true;
-        return bubbleColor.color == floodingBubbleColor.color;
+        return SameColor(bubbleColor.color, floodingBubbleColor.color);
     }
 
     private bool IsOverlappingBubble()

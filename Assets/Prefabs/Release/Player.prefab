@@ -30,7 +30,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 7988506504114987409}
+  - {fileID: 5030302293209830548}
   m_Father: {fileID: 1695849632346788909}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7826980780890956964
@@ -140,7 +142,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1695849632346788909}
+  m_Father: {fileID: 3418841386660042423}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &3579573063806259869
 SpriteRenderer:
@@ -228,7 +230,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1695849632346788909}
+  m_Father: {fileID: 3418841386660042423}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7900329388345700369
 SpriteRenderer:
@@ -402,12 +404,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5679696064082437699, guid: 13c4653c0a18a4a978f7f3b4cc49233b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3418841386660042423}
-    - targetCorrespondingSourceObject: {fileID: 5679696064082437699, guid: 13c4653c0a18a4a978f7f3b4cc49233b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7988506504114987409}
-    - targetCorrespondingSourceObject: {fileID: 5679696064082437699, guid: 13c4653c0a18a4a978f7f3b4cc49233b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5030302293209830548}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 13c4653c0a18a4a978f7f3b4cc49233b, type: 3}
 --- !u!4 &1695849632346788909 stripped

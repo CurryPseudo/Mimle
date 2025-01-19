@@ -390,6 +390,9 @@ public class Player : MonoBehaviour
                 }
 
                 {
+                    var targetHit = ClosetTranslationHit(hit =>
+                        IsBubbleColorHit(hit, floodingBubbleColor) && IsTargetBubbleHit(hit));
+                    if (targetHit != null) GetTargetBubble(targetHit.Value).enabled = false;
                     var closetHit = ClosetTranslationHit(hit =>
                         !IsBubbleColorHit(hit, floodingBubbleColor));
                     if (closetHit == null)
@@ -441,7 +444,6 @@ public class Player : MonoBehaviour
     {
         var bubbleColor = GetBubbleColor(hit);
         if (bubbleColor == null) return false;
-        if (IsTargetBubbleHit(hit)) return false;
         return SameColor(bubbleColor.color, floodingBubbleColor.color);
     }
 

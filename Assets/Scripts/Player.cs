@@ -138,6 +138,18 @@ public class Player : MonoBehaviour
             // Forbid any update
             return;
 
+        if (Input.GetKeyDown(KeyCode.N))
+        {
+            NextScene();
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            LastScene();
+            return;
+        }
+
         if (Input.GetButtonDown("Reset")) SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         if (Input.GetButtonDown("Jump"))
         {
@@ -211,12 +223,8 @@ public class Player : MonoBehaviour
         if (targetBubbles.Count(targetBubble => targetBubble.enabled) == 0)
         {
             if (targetBubbles.Count(targetBubble => !targetBubble.isDead) == 0)
-                if (switchSceneWhenWin && SceneManager.GetActiveScene().buildIndex != -1)
-                {
-                    var next = SceneManager.GetActiveScene().buildIndex + 1;
-                    if (next >= SceneManager.sceneCountInBuildSettings) next = 0;
-                    SceneManager.LoadScene(next);
-                }
+                if (switchSceneWhenWin)
+                    NextScene();
 
             // Forbid any update
             return;
@@ -446,6 +454,26 @@ public class Player : MonoBehaviour
 
             default:
                 throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private static void NextScene()
+    {
+        if (SceneManager.GetActiveScene().buildIndex != -1)
+        {
+            var next = SceneManager.GetActiveScene().buildIndex + 1;
+            if (next >= SceneManager.sceneCountInBuildSettings) next = 0;
+            SceneManager.LoadScene(next);
+        }
+    }
+
+    private static void LastScene()
+    {
+        if (SceneManager.GetActiveScene().buildIndex != -1)
+        {
+            var next = SceneManager.GetActiveScene().buildIndex - 1;
+            if (next < 0) next = SceneManager.sceneCountInBuildSettings - 1;
+            SceneManager.LoadScene(next);
         }
     }
 

@@ -152,6 +152,12 @@ public class Player : MonoBehaviour
             return;
         }
 
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SceneManager.LoadScene(0);
+            return;
+        }
+
         if (Input.GetButtonDown("Reset")) SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         if (Input.GetButtonDown("Jump"))
         {

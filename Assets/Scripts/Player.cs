@@ -40,6 +40,7 @@ public class Player : MonoBehaviour
     public bool switchSceneWhenWin = true;
 
     public float deadReloadSceneTime = 1.5f;
+    public AudioClip jumpSoundResource;
     private bool _absorbButtonDown;
 
     private float? _directRotateSpeed;
@@ -79,6 +80,7 @@ public class Player : MonoBehaviour
     }
 
     private Rigidbody2D Rigidbody => GetComponent<Rigidbody2D>();
+    private AudioSource AudioSource => GetComponent<AudioSource>();
 
     public State PlayerState
     {
@@ -263,6 +265,7 @@ public class Player : MonoBehaviour
             {
                 if (_jumpButtonDown)
                 {
+                    AudioSource.PlayOneShot(jumpSoundResource);
                     _jumpButtonDown = false;
                     var closetPoint = ClosetScenePoint();
                     if (closetPoint == null) return;

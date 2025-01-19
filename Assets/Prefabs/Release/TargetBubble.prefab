@@ -130,7 +130,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 4427771760744012349}
+  m_Father: {fileID: 2052439195215161867}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6721949028743161782
 SpriteRenderer:
@@ -220,6 +220,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 5535324131458923569}
   - {fileID: 6811683865871305924}
   m_Father: {fileID: 4427771760744012349}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -384,9 +385,6 @@ PrefabInstance:
     - {fileID: 6168489197817101131, guid: 80ab847fc18ce4b928c66a827c3d1a04, type: 3}
     - {fileID: 7886121411586427008, guid: 80ab847fc18ce4b928c66a827c3d1a04, type: 3}
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 5545778934361340941, guid: 80ab847fc18ce4b928c66a827c3d1a04, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5535324131458923569}
     - targetCorrespondingSourceObject: {fileID: 5545778934361340941, guid: 80ab847fc18ce4b928c66a827c3d1a04, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2052439195215161867}

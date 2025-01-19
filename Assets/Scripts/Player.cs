@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -36,6 +37,7 @@ public class Player : MonoBehaviour
     public float inputResistTime = 0.2f;
     public float rotateSpeed = 180.0f;
     public float floatRotateSpeed = 90.0f;
+    public bool switchSceneWhenWin = true;
     private bool _absorbButtonDown;
 
     private float? _directRotateSpeed;
@@ -127,6 +129,11 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        var targetBubbles = FindObjectsByType<TargetBubble>(FindObjectsSortMode.None).ToList();
+        if (targetBubbles.Count(targetBubble => targetBubble.enabled) == 0)
+            // Forbid any update
+            return;
+
         if (Input.GetButtonDown("Reset")) SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         if (Input.GetButtonDown("Jump"))
         {
@@ -189,6 +196,21 @@ public class Player : MonoBehaviour
 
     private void InternalUpdate()
     {
+        var targetBubbles = FindObjectsByType<TargetBubble>(FindObjectsSortMode.None).ToList();
+        if (targetBubbles.Count(targetBubble => targetBubble.enabled) == 0)
+        {
+            if (targetBubbles.Count(targetBubble => !targetBubble.isDead) == 0)
+                if (switchSceneWhenWin && SceneManager.GetActiveScene().buildIndex != -1)
+                {
+                    var next = SceneManager.GetActiveScene().buildIndex + 1;
+                    if (next >= SceneManager.sceneCountInBuildSettings) next = 0;
+                    SceneManager.LoadScene(next);
+                }
+
+            // Forbid any update
+            return;
+        }
+
         switch (PlayerState)
         {
             case State.Float:

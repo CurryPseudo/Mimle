@@ -101,6 +101,11 @@ public class Player : MonoBehaviour
         InternalUpdate();
     }
 
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.GetComponent<Spike>() != null) Destroy(gameObject);
+    }
+
     private void InternalUpdate()
     {
         switch (state)
@@ -403,6 +408,7 @@ public class Player : MonoBehaviour
     {
         var hits = new List<RaycastHit2D>();
         Rigidbody.Cast(translation.normalized, hits, translation.magnitude + hitEpsilon);
+        hits.RemoveAll(hit => hit.rigidbody == null);
         return ClosetHit(hits);
     }
 
@@ -410,7 +416,7 @@ public class Player : MonoBehaviour
     {
         var hits = new List<RaycastHit2D>();
         Rigidbody.Cast(translation.normalized, hits, translation.magnitude + hitEpsilon);
-        hits.RemoveAll(hit => !filterFunc(hit));
+        hits.RemoveAll(hit => hit.rigidbody == null || !filterFunc(hit));
         return ClosetHit(hits);
     }
 
@@ -483,6 +489,7 @@ public class Player : MonoBehaviour
         var direction = closetPoint.Value - Position;
         var hits = new List<RaycastHit2D>();
         Rigidbody.Cast(direction.normalized, hits);
+        hits.RemoveAll(hit => hit.rigidbody == null);
         return ClosetHit(hits);
     }
 }

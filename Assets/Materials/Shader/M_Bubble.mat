@@ -45,7 +45,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _frame_num: 12
-    - _power: 0.158
+    - _power: 0.109
     - _scale: 0.53
     - _speed: 1
     m_Colors:

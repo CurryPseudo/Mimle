@@ -38,9 +38,12 @@ public class Player : MonoBehaviour
     public float rotateSpeed = 180.0f;
     public float floatRotateSpeed = 90.0f;
     public bool switchSceneWhenWin = true;
+
+    public float deadReloadSceneTime = 1.5f;
     private bool _absorbButtonDown;
 
     private float? _directRotateSpeed;
+    private bool _isDead;
 
     private bool _jumpButtonDown;
     private bool _jumping;
@@ -129,6 +132,7 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        if (_isDead) return;
         var targetBubbles = FindObjectsByType<TargetBubble>(FindObjectsSortMode.None).ToList();
         if (targetBubbles.Count(targetBubble => targetBubble.enabled) == 0)
             // Forbid any update
@@ -187,15 +191,22 @@ public class Player : MonoBehaviour
     {
         if (other.gameObject.GetComponent<Spike>() != null)
         {
-            Position = _originPoint;
-            Velocity = Vector2.zero;
-            PlayerColor = Color.white;
-            Start();
+            _isDead = true;
+            GetComponentInChildren<Animator>().SetBool("Dead", true);
+
+            IEnumerator DeadCoroutine()
+            {
+                yield return new WaitForSeconds(deadReloadSceneTime);
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            }
+
+            StartCoroutine(DeadCoroutine());
         }
     }
 
     private void InternalUpdate()
     {
+        if (_isDead) return;
         var targetBubbles = FindObjectsByType<TargetBubble>(FindObjectsSortMode.None).ToList();
         if (targetBubbles.Count(targetBubble => targetBubble.enabled) == 0)
         {

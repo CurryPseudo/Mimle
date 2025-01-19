@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Player : MonoBehaviour
 {
@@ -32,13 +33,20 @@ public class Player : MonoBehaviour
 
     public Vector2 velocity = Vector2.zero;
     public float inputResistTime = 0.2f;
-    private bool absorbButtonDown;
+    public float rotateSpeed = 180.0f;
+    public float floatRotateSpeed = 90.0f;
+    private bool _absorbButtonDown;
 
-    private bool jumpButtonDown;
-    private bool jumping;
-    private Coroutine resetAbsorbButtonDownCoroutine;
+    private float? _directRotateSpeed;
 
-    private Coroutine resetJumpButtonDownCoroutine;
+    private bool _jumpButtonDown;
+    private bool _jumping;
+    private Color _originalColor;
+    private Vector2 _originPoint;
+    private Coroutine _resetAbsorbButtonDownCoroutine;
+
+    private Coroutine _resetJumpButtonDownCoroutine;
+    private float? _targetRotation;
 
     public Color PlayerColor
     {
@@ -58,24 +66,74 @@ public class Player : MonoBehaviour
         set => velocity = value;
     }
 
+    private float Rotation
+    {
+        get => Rigidbody.rotation;
+        set => Rigidbody.rotation = value;
+    }
+
     private Rigidbody2D Rigidbody => GetComponent<Rigidbody2D>();
+
+    public State PlayerState
+    {
+        get => state;
+        set
+        {
+            var preState = state;
+            // Exit
+            switch (preState)
+            {
+                case State.Float:
+                    _directRotateSpeed = null;
+                    break;
+                case State.Roll:
+                    _targetRotation = null;
+                    break;
+                case State.Flood:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            state = value;
+            // Enter
+            switch (value)
+            {
+                case State.Float:
+                    _directRotateSpeed = Random.value > 0.5f
+                        ? floatRotateSpeed
+                        : -floatRotateSpeed;
+                    break;
+                case State.Roll:
+                    break;
+                case State.Flood:
+                    _targetRotation = 0.0f;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(value), value, null);
+            }
+        }
+    }
 
     private void Start()
     {
-        state = State.Float;
+        PlayerState = State.Float;
+        _originPoint = Position;
+        _targetRotation = null;
+        _directRotateSpeed = null;
     }
 
     private void Update()
     {
         if (Input.GetButtonDown("Jump"))
         {
-            jumpButtonDown = true;
-            if (resetJumpButtonDownCoroutine != null) StopCoroutine(resetJumpButtonDownCoroutine);
+            _jumpButtonDown = true;
+            if (_resetJumpButtonDownCoroutine != null) StopCoroutine(_resetJumpButtonDownCoroutine);
 
             IEnumerator ResetJumpButtonDownCoroutine()
             {
                 yield return new WaitForSeconds(inputResistTime);
-                jumpButtonDown = false;
+                _jumpButtonDown = false;
             }
 
             StartCoroutine(ResetJumpButtonDownCoroutine());
@@ -83,16 +141,30 @@ public class Player : MonoBehaviour
 
         if (Input.GetButtonDown("Absorb"))
         {
-            absorbButtonDown = true;
-            if (resetAbsorbButtonDownCoroutine != null) StopCoroutine(resetAbsorbButtonDownCoroutine);
+            _absorbButtonDown = true;
+            if (_resetAbsorbButtonDownCoroutine != null) StopCoroutine(_resetAbsorbButtonDownCoroutine);
 
             IEnumerator ResetAbsorbButtonDownCoroutine()
             {
                 yield return new WaitForSeconds(inputResistTime);
-                absorbButtonDown = false;
+                _absorbButtonDown = false;
             }
 
             StartCoroutine(ResetAbsorbButtonDownCoroutine());
+        }
+
+        if (_targetRotation.HasValue)
+        {
+            // [-360, 360]
+            var deltaAngle = _targetRotation.Value - Rotation;
+            if (deltaAngle > 180.0f) deltaAngle -= 360.0f;
+            if (deltaAngle < -180.0f) deltaAngle += 360.0f;
+            // [-180, 180]
+            Rotation += math.sign(deltaAngle) * math.min(rotateSpeed * Time.deltaTime, math.abs(deltaAngle));
+        }
+        else if (_directRotateSpeed.HasValue)
+        {
+            Rotation += _directRotateSpeed.Value * Time.deltaTime;
         }
     }
 
@@ -103,18 +175,24 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.GetComponent<Spike>() != null) Destroy(gameObject);
+        if (other.gameObject.GetComponent<Spike>() != null)
+        {
+            Position = _originPoint;
+            Velocity = Vector2.zero;
+            PlayerColor = Color.white;
+            Start();
+        }
     }
 
     private void InternalUpdate()
     {
-        switch (state)
+        switch (PlayerState)
         {
             case State.Float:
             {
                 var closestPoint = ClosetScenePoint();
 
-                if (closestPoint != null && !jumping)
+                if (closestPoint != null && !_jumping)
                 {
                     var direction = closestPoint.Value - Position;
                     Velocity += direction.normalized * (attachAcc * Time.fixedDeltaTime);
@@ -132,16 +210,16 @@ public class Player : MonoBehaviour
                 {
                     Position += math.max(closetHit.Value.distance - hitEpsilon, 0f) * Velocity.normalized;
                     Velocity = Vector2.zero;
-                    state = State.Roll;
+                    PlayerState = State.Roll;
                 }
 
                 break;
             }
             case State.Roll:
             {
-                if (jumpButtonDown)
+                if (_jumpButtonDown)
                 {
-                    jumpButtonDown = false;
+                    _jumpButtonDown = false;
                     var closetPoint = ClosetScenePoint();
                     if (closetPoint == null) return;
                     var normal = (Position - closetPoint.Value).normalized;
@@ -150,9 +228,9 @@ public class Player : MonoBehaviour
 
                     IEnumerator JumpEndCoroutine()
                     {
-                        jumping = true;
+                        _jumping = true;
                         yield return new WaitForSeconds(jumpTime);
-                        jumping = false;
+                        _jumping = false;
                     }
 
                     StartCoroutine(JumpEndCoroutine());
@@ -161,20 +239,20 @@ public class Player : MonoBehaviour
                     {
                         yield return null;
                         Velocity = Velocity.normalized * jumpSpeed;
-                        if (state != State.Float) yield break;
-                        if (!jumping) yield break;
+                        if (PlayerState != State.Float) yield break;
+                        if (!_jumping) yield break;
                     }
 
                     StartCoroutine(KeepJumpSpeedCoroutine());
 
-                    state = State.Float;
+                    PlayerState = State.Float;
                     InternalUpdate();
                     return;
                 }
 
-                if (absorbButtonDown)
+                if (_absorbButtonDown)
                 {
-                    absorbButtonDown = false;
+                    _absorbButtonDown = false;
                     if (TryAbsorb()) return;
                 }
 
@@ -203,6 +281,7 @@ public class Player : MonoBehaviour
                         var normal = (Position - closetPoint.Value).normalized;
                         var directionNormal = new Vector2(normal.y, -normal.x);
                         Velocity += directionNormal * (horizontalInput * (rollAcc * Time.fixedDeltaTime));
+                        _targetRotation = math.degrees(math.atan2(normal.y, normal.x)) - 90.0f;
                     }
                     else
                     {
@@ -254,7 +333,7 @@ public class Player : MonoBehaviour
                 if (floodingBubbleColor == null) floodingBubbleColor = GetOverlappingBubbleColor();
                 if (floodingBubbleColor == null)
                 {
-                    state = State.Roll;
+                    PlayerState = State.Roll;
                     InternalUpdate();
                     return;
                 }
@@ -304,7 +383,7 @@ public class Player : MonoBehaviour
                     if (drillStickPosition != null)
                     {
                         Position = drillStickPosition.Value;
-                        state = State.Roll;
+                        PlayerState = State.Roll;
                         return;
                     }
                 }
@@ -342,7 +421,7 @@ public class Player : MonoBehaviour
             PlayerColor = bubbleColor.color;
             var normal = (Position - closetHit.Value.point).normalized;
             Velocity = -normal * drillSpeed;
-            state = State.Flood;
+            PlayerState = State.Flood;
             InternalUpdate();
             return true;
         }

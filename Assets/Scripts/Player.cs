@@ -118,6 +118,7 @@ public class Player : MonoBehaviour
     private void Start()
     {
         PlayerState = State.Float;
+        Rotation = 0f;
         _originPoint = Position;
         _targetRotation = null;
         _directRotateSpeed = null;

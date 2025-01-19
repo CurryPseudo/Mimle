@@ -317,21 +317,16 @@ PrefabInstance:
       propertyPath: m_text
       value: 'Mimi need same color to open the <b>star bubble</b>
 
-        Mimi will
-        stick on bubble
-
-        Press <b>Space key</b> to bounce up
-
         Press
         <b> Z key</b> to enter normal bubble, Mimi will get new color'
       objectReference: {fileID: 0}
     - target: {fileID: 1209836996245333633, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
       propertyPath: m_fontSize
-      value: 30
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 1209836996245333633, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
       propertyPath: m_fontSizeBase
-      value: 30
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 1634506490967455557, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
       propertyPath: m_Pivot.x

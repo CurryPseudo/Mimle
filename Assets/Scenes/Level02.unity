@@ -337,11 +337,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1209836996245333633, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
       propertyPath: m_fontSize
-      value: 45
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 1209836996245333633, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
+      propertyPath: m_fontColor.b
+      value: 0.14901961
+      objectReference: {fileID: 0}
+    - target: {fileID: 1209836996245333633, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
+      propertyPath: m_fontColor.g
+      value: 0.14901961
+      objectReference: {fileID: 0}
+    - target: {fileID: 1209836996245333633, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
+      propertyPath: m_fontColor.r
+      value: 0.14901961
       objectReference: {fileID: 0}
     - target: {fileID: 1209836996245333633, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
       propertyPath: m_fontSizeBase
-      value: 45
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 1209836996245333633, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4280690214
       objectReference: {fileID: 0}
     - target: {fileID: 1634506490967455557, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
       propertyPath: m_Pivot.x
@@ -426,6 +442,10 @@ PrefabInstance:
     - target: {fileID: 1641995615157358719, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
       propertyPath: m_Name
       value: Canvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 3054029844567161821, guid: 9ac2140306b2d453cbc9f21ab610aac5, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -44
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
